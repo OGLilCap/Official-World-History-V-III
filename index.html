@@ -104,7 +104,7 @@
         <p id="fact"></p>
 
         <div id="controls">
-            <label for="centuries">Filter by Century: </label>
+            <label for="Century">Filter by Century: </label>
             <select id="Century">
                 <option value="all">All Centuries</option>
                 <option value="ancient">Before 1700</option>
@@ -156,11 +156,17 @@
             return century.toString();
         }
 
-        function filterEvents(events, decade) {
-            if (decade === 'all') return events;
-            if (decade === 'ancient') 
-                return events.filter(e => parseInt(e.year.replace(/\D/g, ''), 10) < 1700);
-            return events.filter(e => getDecade(e.year) === decade);
+        function filterEvents(events, filter) {
+            if (filter === 'all') return events;
+            
+            if (filter === 'ancient') {
+                return events.filter(e => {
+                    const y = parseInt(e.year.replace(/\D/g, ''), 10);
+                    return !isNaN(y) && y < 1700;
+                });
+            }
+            
+            return events.filter(e => getDecade(e.year) === filter);
         }
 
         function displayFact() {
@@ -172,7 +178,7 @@
                 const shuffled = shuffleArray(filtered.length > 0 ? filtered : allEvents);
                 
                 if (shuffled.length > 0) {
-                    const event = shuffled[0];   // Just show one random fact
+                    const event = shuffled[0];
                     factEl.innerHTML = `In <strong>${event.year}</strong>: ${event.text}`;
                 } else {
                     factEl.textContent = "No facts available for this filter.";
@@ -206,7 +212,7 @@
             });
 
         // Filter handler
-        document.getElementById('decade').addEventListener('change', (e) => {
+        document.getElementById('Century').addEventListener('change', (e) => {
             currentFilter = e.target.value;
             displayFact();
         });
