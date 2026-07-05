@@ -10,9 +10,8 @@
             font-family: 'EB Garamond', serif;
             margin: 0;
             min-height: 100vh;
-            background: 
-                linear-gradient(rgba(245, 240, 225, 0.92), rgba(245, 240, 225, 0.75)),
-                url('https://images.pexels.com/photos/247671/pexels-photo-247671.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') center/cover no-repeat fixed;
+            background: linear-gradient(rgba(245, 240, 225, 0.92), rgba(245, 240, 225, 0.75)),
+                        url('https://images.pexels.com/photos/247671/pexels-photo-247671.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2') center/cover no-repeat fixed;
             background-blend-mode: overlay;
             color: #3c2f2f;
             display: flex;
@@ -26,18 +25,10 @@
             background: #f9f5e8;
             padding: 50px 60px;
             border-radius: 8px;
-            box-shadow: 
-                0 10px 30px rgba(60, 47, 47, 0.15),
-                inset 0 0 40px rgba(139, 69, 19, 0.08);
+            box-shadow: 0 10px 30px rgba(60, 47, 47, 0.15),
+                        inset 0 0 40px rgba(139, 69, 19, 0.08);
             position: relative;
             border: 1px solid rgba(139, 69, 19, 0.15);
-        }
-        #fact-container::before {
-            content: "";
-            position: absolute;
-            inset: -20px;
-            background: radial-gradient(circle at 30% 70%, rgba(255,255,240,0.4) 0%, transparent 70%);
-            pointer-events: none;
         }
         h1 {
             font-family: 'Cinzel', serif;
@@ -45,7 +36,6 @@
             color: #8b4513;
             margin: 0 0 0.5rem;
             text-align: center;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
         #date-header {
             font-size: 1.6rem;
@@ -53,7 +43,6 @@
             text-align: center;
             margin: 0 0 1.8rem;
             font-style: italic;
-            letter-spacing: 0.5px;
         }
         #fact {
             font-size: 1.4rem;
@@ -73,7 +62,18 @@
             border-radius: 6px;
             background: #fffef0;
             color: #3c2f2f;
-            cursor: pointer;
+        }
+        #epoch-link {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 1rem;
+        }
+        #epoch-link a {
+            color: #0066cc;
+            text-decoration: underline;
+        }
+        #epoch-link a:hover {
+            color: #004499;
         }
         #loading {
             font-size: 1.3rem;
@@ -85,15 +85,9 @@
             font-size: 1rem;
             color: #6b5e4e;
             text-align: center;
-            line-height: 1.5;
             margin-top: 2rem;
             border-top: 1px solid rgba(139, 69, 19, 0.15);
             padding-top: 1rem;
-        }
-        footer small {
-            display: block;
-            margin-top: 0.5rem;
-            font-style: italic;
         }
     </style>
 </head>
@@ -113,12 +107,16 @@
                 <option value="1900">1900s</option>
                 <option value="2000">2000s+</option>
             </select>
+
+            <div id="epoch-link">
+                <a href="https://www.epoch-us.com" target="_blank">Epoch</a>
+            </div>
         </div>
 
-        <div id="loading">Loading your historical moment...</div>
+        <div id="loading">Loading today's history...</div>
 
         <footer>
-            <p>Tap your NFC bracelet again for a new fact.<br>
+            <p>Tap your Epoch bracelet again for a new fact!<br>
             Come back tomorrow for fresh moments from this day in history.</p>
             <small>
                 Historical facts sourced from <a href="https://history.muffinlabs.com/">Muffin Labs</a> (CC BY-SA 3.0). 
@@ -128,17 +126,6 @@
     </div>
 
     <script>
-        // Basic utilities
-        function shuffleArray(array) {
-            const shuffled = array.slice();
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        // Date setup
         const now = new Date();
         const month = now.getMonth() + 1;
         const day = now.getDate();
@@ -149,23 +136,24 @@
         let allEvents = [];
         let currentFilter = 'all';
 
+        function shuffleArray(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
         function getDecade(yearStr) {
-            const yearNum = parseInt(yearStr.replace(/\D/g, ''), 10);
-            if (isNaN(yearNum) || yearNum < 1700) return 'ancient';
-            const century = Math.floor(yearNum / 100) * 100;
-            return century.toString();
+            const year = parseInt(yearStr.replace(/\D/g, ''), 10);
+            if (isNaN(year) || year < 1700) return 'ancient';
+            return (Math.floor(year / 100) * 100).toString();
         }
 
         function filterEvents(events, filter) {
             if (filter === 'all') return events;
-            
             if (filter === 'ancient') {
                 return events.filter(e => {
                     const y = parseInt(e.year.replace(/\D/g, ''), 10);
                     return !isNaN(y) && y < 1700;
                 });
             }
-            
             return events.filter(e => getDecade(e.year) === filter);
         }
 
@@ -173,46 +161,29 @@
             const factEl = document.getElementById('fact');
             const loadingEl = document.getElementById('loading');
 
-            if (allEvents.length > 0) {
-                const filtered = filterEvents(allEvents, currentFilter);
-                const shuffled = shuffleArray(filtered.length > 0 ? filtered : allEvents);
-                
-                if (shuffled.length > 0) {
-                    const event = shuffled[0];
-                    factEl.innerHTML = `In <strong>${event.year}</strong>: ${event.text}`;
-                } else {
-                    factEl.textContent = "No facts available for this filter.";
-                }
+            if (allEvents.length === 0) {
+                factEl.textContent = "No historical events available.";
             } else {
-                factEl.textContent = "No historical events found for today.";
+                const filtered = filterEvents(allEvents, currentFilter);
+                const shuffled = shuffleArray(filtered.length ? filtered : allEvents);
+                const event = shuffled[0];
+                factEl.innerHTML = `In <strong>${event.year}</strong>: ${event.text}`;
             }
             loadingEl.style.display = 'none';
         }
 
-        // Main fetch logic
-        document.getElementById('loading').textContent = "Fetching today's history...";
-
         fetch(`https://history.muffinlabs.com/date/${month}/${day}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network error');
-                return response.json();
-            })
+            .then(r => r.ok ? r.json() : Promise.reject())
             .then(data => {
-                allEvents = data.data.Events || [];
+                allEvents = data.data?.Events || [];
                 displayFact();
             })
-            .catch(error => {
-                console.error(error);
-                document.getElementById('fact').innerHTML = `
-                    <strong>Unable to load facts at the moment.</strong><br><br>
-                    This sometimes happens when opening the site via NFC.<br>
-                    Please try opening <strong>ourhistory.epoch-us.com</strong> normally in your browser.
-                `;
+            .catch(() => {
+                document.getElementById('fact').innerHTML = `<strong>Unable to load facts at the moment.</strong>`;
                 document.getElementById('loading').style.display = 'none';
             });
 
-        // Filter handler
-        document.getElementById('Century').addEventListener('change', (e) => {
+        document.getElementById('Century').addEventListener('change', e => {
             currentFilter = e.target.value;
             displayFact();
         });
